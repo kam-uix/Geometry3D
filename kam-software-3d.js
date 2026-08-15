@@ -5,30 +5,30 @@
 import * as THREE from 'three';
 
 /**
- * Tworzy geometrię pudełka z zaokrąglonymi krawędziami (wszystkie 12).
+ * Creates a box geometry with rounded edges (all 12 edges).
  *
- * @param {number} width   - Szerokość (oś X)
- * @param {number} height  - Wysokość (oś Y)
- * @param {number} depth   - Głębokość (oś Z)
- * @param {number} radius  - Promień zaokrąglenia
- * @param {number} segments - Liczba segmentów zaokrąglenia
+ * @param {number} width    - Width (X axis)
+ * @param {number} height   - Height (Y axis)
+ * @param {number} depth    - Depth (Z axis)
+ * @param {number} radius   - Rounding radius
+ * @param {number} segments - Number of segments for the rounding
  * @returns {THREE.BufferGeometry}
  */
 export function createRoundedBoxGeometry(width = 1, height = 1, depth = 1, radius = 0.1, segments = 4) {
-    // Przycinamy promień do połowy najmniejszego wymiaru
+    // Clamp the radius to half of the smallest dimension
     radius = Math.min(width / 2, height / 2, depth / 2, radius);
 
-    // Liczba segmentów musi być nieparzysta dla symetrii
+    // Number of segments must be odd for symmetry
     const seg = segments * 2 + 1;
 
-    // Tworzymy pudełko jednostkowe z odpowiednią liczbą segmentów
+    // Create a unit box with the specified number of segments
     const geometry = new THREE.BoxGeometry(1, 1, 1, seg, seg, seg);
 
-    // Konwertujemy na geometrię niezindeksowaną, aby każda ściana miała niezależne wierzchołki
+    // Convert to non-indexed geometry so each face has independent vertices
     const posGeo = geometry.toNonIndexed();
     geometry.dispose();
 
-    // Jeśli segments = 0, zwracamy zwykłe pudełko
+    // If segments = 0, return a plain box
     if (segments === 0) return posGeo;
 
     const position = posGeo.attributes.position;
@@ -49,32 +49,32 @@ export function createRoundedBoxGeometry(width = 1, height = 1, depth = 1, radiu
         v3.fromBufferAttribute(position, i);
         n3.fromBufferAttribute(normal, i);
 
-        // Skalujemy do rzeczywistych wymiarów
+        // Scale to actual dimensions
         v3.x *= width;
         v3.y *= height;
         v3.z *= depth;
 
-        // Określamy, która to ściana na podstawie normalnej
+        // Determine which face this vertex belongs to based on its normal
         const absX = Math.abs(n3.x);
         const absY = Math.abs(n3.y);
         const absZ = Math.abs(n3.z);
 
         if (absX > absY && absX > absZ) {
-            // Ściana X
+            // X face
             closest.set(
                 n3.x * innerWidth,
                 THREE.MathUtils.clamp(v3.y, -innerHeight, innerHeight),
                 THREE.MathUtils.clamp(v3.z, -innerDepth, innerDepth)
             );
         } else if (absY > absZ) {
-            // Ściana Y
+            // Y face
             closest.set(
                 THREE.MathUtils.clamp(v3.x, -innerWidth, innerWidth),
                 n3.y * innerHeight,
                 THREE.MathUtils.clamp(v3.z, -innerDepth, innerDepth)
             );
         } else {
-            // Ściana Z
+            // Z face
             closest.set(
                 THREE.MathUtils.clamp(v3.x, -innerWidth, innerWidth),
                 THREE.MathUtils.clamp(v3.y, -innerHeight, innerHeight),
@@ -82,12 +82,12 @@ export function createRoundedBoxGeometry(width = 1, height = 1, depth = 1, radiu
             );
         }
 
-        // Wektor od najbliższego punktu na wewnętrznym prostokącie do wierzchołka
+        // Vector from the closest point on the inner rectangle to the vertex
         const offset = v3.clone().sub(closest);
         const dist = offset.length();
 
         if (dist < radius && dist > 0) {
-            // Wypychamy wierzchołek na zaokrągloną powierzchnię
+            // Push the vertex out to the rounded surface
             offset.normalize().multiplyScalar(radius - dist);
             v3.add(offset);
         }
@@ -95,7 +95,7 @@ export function createRoundedBoxGeometry(width = 1, height = 1, depth = 1, radiu
         position.setXYZ(i, v3.x, v3.y, v3.z);
     }
 
-    // Przeliczamy normalne dla gładkiego cieniowania
+    // Recompute normals for smooth shading
     posGeo.computeVertexNormals();
 
     return posGeo;
