@@ -10,15 +10,15 @@ import * as THREE from 'three';
  * @param {number} width   - Szerokość (oś X)
  * @param {number} height  - Wysokość (oś Y)
  * @param {number} depth   - Głębokość (oś Z)
- * @param {number} radius  - Promień zaokrąglenia (przycinany do połowy najmniejszego wymiaru)
- * @param {number} segments - Liczba segmentów zaokrąglenia (im więcej, tym gładsze)
- * @returns {THREE.BufferGeometry} - Geometria z zaokrąglonymi krawędziami
+ * @param {number} radius  - Promień zaokrąglenia
+ * @param {number} segments - Liczba segmentów zaokrąglenia
+ * @returns {THREE.BufferGeometry}
  */
 export function createRoundedBoxGeometry(width = 1, height = 1, depth = 1, radius = 0.1, segments = 4) {
     // Przycinamy promień do połowy najmniejszego wymiaru
     radius = Math.min(width / 2, height / 2, depth / 2, radius);
 
-    // Liczba segmentów musi być nieparzysta dla symetrii (segments * 2 + 1)
+    // Liczba segmentów musi być nieparzysta dla symetrii
     const seg = segments * 2 + 1;
 
     // Tworzymy pudełko jednostkowe z odpowiednią liczbą segmentów
