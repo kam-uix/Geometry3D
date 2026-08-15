@@ -1,6 +1,6 @@
 // kam-software-3d.js
 // KAM.SOFTWARE 3D Geometry Utilities
-// https://github.com/kam-uix/TWOJE_REPO
+// https://github.com/kam-uix/Geometry3D
 
 import * as THREE from 'three';
 
